@@ -1,0 +1,31 @@
+Main class: Good1
+
+		Class: Good1
+			Fields:
+				Method: int main
+					Parameters:
+						String[] args
+					Locals:
+
+
+		Class: Good1Sorter
+			Fields:
+				int refr
+				int lb
+				int hb
+				int tmp
+				int dump
+				Method: boolean testing
+					Parameters:
+					Locals:
+						int[] a
+						int waste
+				Method: int quickSort
+					Parameters:
+						int[] array
+						int start
+						int end
+					Locals:
+						int ret
+
+

@@ -1,0 +1,593 @@
+
+PARSER_BEGIN(MiniJavaParser)
+    package mjc.frontend;
+	import syntaxtree.*;
+	import java.io.InputStream;
+	public class MiniJavaParser {
+
+	    /** Main entry point. */
+	    public static void main(String[] args) throws ParseException {
+	        MiniJavaParser parser = new MiniJavaParser(System.in);
+	        Program prog = parser.Prog();
+	        System.out.println("Printed tree:");
+	        System.out.println(prog.strRepr(1));
+	    }
+
+	    public Program parse(InputStream content) throws ParseException {
+	        MiniJavaParser parser = new MiniJavaParser(content);
+	        return parser.Prog();
+	    }
+
+	    public MiniJavaParser() {}
+
+    }
+
+PARSER_END(MiniJavaParser)
+
+SKIP:
+{" "|"\t"|"\n"|"\r"}
+SKIP:
+{<"/*">: INSIDE_COMMENT}
+SKIP:
+{<"//" (~["\n"])* "\n">}
+<INSIDE_COMMENT>
+SKIP:
+{<"*/">:DEFAULT | <~[]>}
+
+TOKEN :
+{  < CLASS: "class "		>
+|  < PUBLIC: "public "		>
+|  < STATIC: "static "		>
+|  < VOID: "void"		    >
+|  < MAIN: "main"		    >
+|  < EXTENDS: "extends"		>
+|  < RETURN: "return "		>
+|  < THIS: "this"           >
+|  < NEW: "new "            >
+|  < WHILE: "while"			>
+|  < IF: "if"				>
+|  < FOR: "for"				>
+|  < LENGTH: ".length"      >
+|  < INT: "int"		    >
+|  < LONG: "long "	    	>
+|  < NUM:   (["0"-"9"])+	>
+|  < BOOLEAN: "boolean "	>
+|  < TRUE: "true"			>
+|  < FALSE: "false"			>
+|  < SEMI: ";"				>
+|  < ELSE: "else"			>
+|  < ASSIGN: "="			>
+|  < AND: "&&"              >
+|  < LT: "<"                >
+|  < PLUS: "+"              >
+|  < MINUS: "-"             >
+|  < TIMES: "*"             >
+|  < OR: "||"               >
+|  < LE: "<="               >
+|  < GT: ">"                >
+|  < GE: ">="               >
+|  < EQ: "=="               >
+|  < NE: "!="               >
+|  < LPAR: "("              >
+|  < RPAR: ")"              >
+|  < STRING: "String"       >
+|  < ID: (["a"-"z"]|["A"-"Z"]|"_")(["a"-"z"]|["A"-"Z"]|["0"-"9"]|"_")* >
+}
+ 
+Program Prog() :             //对于非终结字符都用一个函数表示
+{
+    ClassDecl mc;
+    ClassDecl cd;
+    ClassDeclList cdl = new ClassDeclList();
+}
+{
+    mc = MainClass() { cdl.addElement(mc); } ( cd = ClassDecl() { cdl.addElement(cd); } )*
+    {
+        Program p = new Program(cdl);
+        p.setPosition(mc.getLine(), mc.getColumn());
+        return p;
+    }
+}
+
+ClassDecl MainClass() :
+{
+    Token t1, t2, t3, t4;
+    Identifier i1, i2, i3, superClass = null;
+    VarDeclList fl = new VarDeclList();
+    VarDecl vd;
+    VarDeclList vdl = new VarDeclList();
+    Statement s;
+    StatementList sl = new StatementList();
+    MethodDeclList mdl = new MethodDeclList();
+}
+{
+    t1 = <CLASS> i1 = id() ( <EXTENDS> superClass=id() )?
+        "{" <PUBLIC> <STATIC> t2 = <VOID> t3 = <MAIN> <LPAR> t4 = <STRING> "[" "]" i2 = id() <RPAR>
+            "{"
+                ( LOOKAHEAD(2) vd = VarDecl() { vdl.addElement(vd); } )*
+                ( s = Statement() { sl.addElement(s); } )*
+            "}"
+        "}"
+    {
+        fl.addElement(new VarDecl(new IdentifierType("String[]", t4.beginLine, t4.beginColumn), i2));
+        i3 = new Identifier(t3.image);
+        i3.setPosition(t3.beginLine, t3.beginColumn);
+        mdl.addElement(
+            new MethodDecl(
+                new IntegerType(t2.beginLine, t2.beginColumn),
+                i3, fl, vdl, sl, new IntegerLiteral(0), true
+            )
+        );
+        ClassDecl mainclass = new ClassDecl(i1, new VarDeclList(), mdl);
+        mainclass.setPosition(t1.beginLine, t1.beginColumn);
+        if (superClass != null) mainclass.setExtends(superClass.toString());
+        return mainclass;
+    }
+}
+
+ClassDecl ClassDecl() :
+{
+    Token t;
+    Identifier i, superClass = null;
+    VarDecl vd;
+    VarDeclList vdl = new VarDeclList();
+    MethodDecl md;
+    MethodDeclList mdl = new MethodDeclList();
+}
+{
+	t = <CLASS> i = id() ( <EXTENDS> superClass=id() )?
+	"{"
+	    ( vd = VarDecl() { vdl.addElement(vd); } )*
+	    ( md = MethodDecl() { mdl.addElement(md); } )*
+	"}"
+	{
+	    ClassDecl cd = new ClassDecl(i, vdl, mdl);
+	    cd.setPosition(t.beginLine, t.beginColumn);
+        if (superClass != null) cd.setExtends(superClass.toString());
+	    return cd;
+	}
+}
+
+
+VarDecl VarDecl() :
+{
+    Type t;
+    Identifier i;
+}
+{     
+      t = Type() i = id() <SEMI>
+      {
+        VarDecl vd = new VarDecl(t, i);
+        vd.setPosition(t.getLine(), t.getColumn());
+        return vd;
+      }
+}
+
+
+MethodDecl MethodDecl() :
+{
+    Token tk;
+    Type t;
+    Identifier i;
+    VarDeclList fl = new VarDeclList();
+    VarDecl vd;
+    VarDeclList vdl = new VarDeclList();
+    Statement s;
+    StatementList sl = new StatementList();
+    Exp e;
+}
+{
+
+    tk = <PUBLIC> t = Type() i = id() <LPAR> fl = FormalList() <RPAR>
+    "{"
+	    (LOOKAHEAD(2) vd = VarDecl() { vdl.addElement(vd); } )*
+        (s = Statement() { sl.addElement(s); } )*
+        <RETURN> e = Exp() <SEMI>
+    "}"
+    {
+        MethodDecl md = new MethodDecl(t, i, fl, vdl, sl, e, false);
+        md.setPosition(tk.beginLine, tk.beginColumn);
+        return md;
+    }
+}
+
+VarDeclList FormalList() :
+{
+    Type t;
+    Identifier i;
+    VarDeclList fl = new VarDeclList();
+    VarDecl f;
+}
+{
+    ( t = Type() i = id() 
+        {
+            f = new VarDecl(t,i);
+            f.setPosition(t.getLine(), t.getColumn());
+            fl.addElement(f); 
+        }
+        ( "," t = Type() i = id()
+            {
+                f = new VarDecl(t,i);
+                f.setPosition(t.getLine(), t.getColumn());
+                fl.addElement(f);
+            }
+        )*
+    )?
+    { return fl; }
+}
+
+Type Type() :
+{
+    Token t;
+    Identifier i;
+}
+{
+    (   LOOKAHEAD(2)
+        t = <INT> "[" "]" { return new IntArrayType(t.beginLine, t.beginColumn); } |
+        t = <BOOLEAN> { return new BooleanType(t.beginLine, t.beginColumn); } |
+        t = <INT> { return new IntegerType(t.beginLine, t.beginColumn); } |
+        i = id() { return new IdentifierType(i.toString(), i.getLine(), i.getColumn());}
+    )
+}
+
+Statement Statement() :
+{
+    Token t;
+    Statement s1, s2, s3;
+    StatementList sl = new StatementList();
+    Exp e1 = null;
+    Exp e2 = null;
+    While w;
+}
+{
+    ( t = "{" ( s1 = Statement() { sl.addElement(s1); } )* "}" {
+            Block b = new Block(sl);
+            b.setPosition(t.beginLine, t.beginColumn);
+            return b; } |
+      t = <IF> <LPAR> e1 = Exp() <RPAR> s1 = Statement() s2 = ElseStm() {
+            If f = new If(e1,s1,s2);
+            f.setPosition(t.beginLine, t.beginColumn);
+            return f; } |
+      t = <WHILE> <LPAR> e1 = Exp() <RPAR> s1 = Statement() {
+            w = new While(e1,s1);
+            w.setPosition(t.beginLine, t.beginColumn);
+            return w; } |
+      t = <FOR> <LPAR> s1 = Statement() e1 = Exp() <SEMI> s2 = AssignStatement() <RPAR> s3 = Statement() {
+            sl.addElement(s1);
+            StatementList sl2 = new StatementList();
+            sl2.addElement(s3);
+            sl2.addElement(s2);
+            Block b1 = new Block(sl2);
+            w = new While(e1, b1);
+            sl.addElement(w);
+            Block b2 = new Block(sl);
+            b2.setPosition(t.beginLine, t.beginColumn);
+            return b2; } |
+      t = "System.out.println" "(" e1 = Exp() ")" <SEMI> {
+            Print p = new Print(e1);
+            p.setPosition(t.beginLine, t.beginColumn);
+            return p; } |
+      s1 = AssignStatement() <SEMI> { return s1; }
+    )
+}
+
+Statement AssignStatement() :
+{
+    Identifier i;
+    Exp e1, e2;
+    IdentifierExp ie;
+    Assign a;
+}
+{
+    i = id() {  ie = new IdentifierExp(i.toString());
+                ie.setPosition(i.getLine(), i.getColumn()); }
+    (
+        "[" e1 = Exp() "]" <ASSIGN> e2 = Exp(){
+            ArrayAssign aa = new ArrayAssign(ie,e1,e2);
+            aa.setPosition(ie.getLine(), ie.getColumn());
+            return aa;
+        } |
+        <ASSIGN> e2 = Exp(){
+            a = new Assign(ie,e2);
+            a.setPosition(ie.getLine(), ie.getColumn());
+            return a;
+        } |
+        <PLUS> <PLUS>{
+            e2 = new IntBinop(ie, new IntegerLiteral(1), "+");
+            a = new Assign(ie, e2);
+            a.setPosition(ie.getLine(), ie.getColumn());
+            return a;
+        } |
+        <MINUS> <MINUS>{
+            e2 = new IntBinop(ie, new IntegerLiteral(1), "-");
+            a = new Assign(ie, e2);
+            a.setPosition(ie.getLine(), ie.getColumn());
+            return a;
+        }
+    )
+}
+
+Statement ElseStm() :
+{
+    Statement s;
+}
+{
+    (<ELSE> s = Statement() { return s; } | { return null; } )
+}
+
+Exp Exp() :
+{
+    Exp orterm;
+    Exp expprim;
+}
+{
+    orterm = OrTerm()
+    expprim = ExpPrim(orterm)
+    { return expprim; }
+}
+
+Exp ExpPrim(Exp e1) :
+{
+    Exp e2;
+    Token t;
+    Identifier i;
+    ExpList el = new ExpList();
+}
+{
+    ( t = "[" e2 = Exp() "]" {
+                ArrayLookup alp = new ArrayLookup(e1,e2);
+                alp.setPosition(t.beginLine, t.beginColumn);
+                return alp; } |
+      t = <LENGTH> {
+                ArrayLength alt = new ArrayLength(e1);
+                alt.setPosition(t.beginLine, t.beginColumn);
+                return alt; } |
+      t = "." i = id() el = ExpList() {
+                Call c = new Call(e1,i,el);
+                c.setPosition(t.beginLine, t.beginColumn);
+                return c; }
+      | { return e1; } )            
+}
+
+
+Exp OrTerm() :
+{
+    Exp andterm;
+    Exp ortermprim;
+    Exp expprim;
+}
+{
+    andterm = AndTerm()
+    expprim = ExpPrim(andterm)
+    ortermprim = OrTermPrim(expprim)
+    { return ortermprim; }
+}
+
+Exp OrTermPrim(Exp o) :
+{
+    Exp andterm;
+    Exp ortermprim;
+    Exp expprim;
+}
+{
+    ( <OR> andterm = AndTerm()
+        expprim = ExpPrim(andterm)
+        ortermprim = OrTermPrim(new Or(o,expprim))
+        { return ortermprim; } | { return o; } )
+}
+
+Exp AndTerm() :
+{
+    Exp compterm;
+    Exp andtermprim;
+    Exp expprim;
+}
+{
+    compterm = CompTerm()
+    expprim = ExpPrim(compterm)
+    andtermprim = AndTermPrim(expprim)
+    { return andtermprim; }
+}
+
+Exp AndTermPrim(Exp a) :
+{
+    Exp compterm;
+    Exp andtermprim;
+    Exp expprim;
+}
+{
+    ( <AND> compterm = CompTerm()
+        expprim = ExpPrim(compterm)
+        andtermprim = AndTermPrim(new And(a, expprim))
+        { return andtermprim; } | { return a; } )
+}
+
+Exp CompTerm() :
+{
+    Exp plusterm;
+    Exp comptermprim;
+    Exp expprim;
+}
+{
+    plusterm = PlusTerm()
+    expprim = ExpPrim(plusterm)
+    comptermprim = CompTermPrim(expprim)
+    { return comptermprim; }
+}
+
+Exp CompTermPrim(Exp c) :
+{
+    Token t;
+    Exp plusterm;
+    Exp comptermprim;
+    Exp expprim;
+}
+{
+    ( ( t = <LT> | t = <LE> | t = <GT> | t = <GE> | t = <EQ> | t = <NE>)
+        plusterm = PlusTerm()
+        expprim = ExpPrim(plusterm)
+        comptermprim = CompTermPrim(new Comp(c, expprim, t.image))
+        { return comptermprim; } | { return c; } )
+}
+
+Exp PlusTerm() :
+{
+    Exp minusterm;
+    Exp plustermprim;
+    Exp expprim;
+}
+{
+    minusterm = MinusTerm()
+        expprim = ExpPrim(minusterm)
+    plustermprim = PlusTermPrim(expprim)
+    { return plustermprim; }
+}
+
+Exp PlusTermPrim(Exp p) :
+{
+    Token t;
+    Exp minusterm;
+    Exp plustermprim;
+    Exp expprim;
+}
+{
+    ( t = <PLUS> minusterm = MinusTerm()
+        expprim = ExpPrim(minusterm)
+        plustermprim = PlusTermPrim(new IntBinop(p, expprim, t.image))
+        { return plustermprim; } | { return p; } )
+}
+
+Exp MinusTerm() :
+{
+    Exp multterm;
+    Exp minustermprim;
+    Exp expprim;
+}
+{
+    multterm = MultTerm()
+    expprim = ExpPrim(multterm)
+    minustermprim = MinusTermPrim(expprim)
+    { return minustermprim; }
+}
+
+Exp MinusTermPrim(Exp m) :
+{
+    Token t;
+    Exp multterm;
+    Exp minustermprim;
+    Exp expprim;
+}
+{
+    ( t = <MINUS> multterm = MultTerm()
+        expprim = ExpPrim(multterm)
+        minustermprim = MinusTermPrim(new IntBinop(m, expprim, t.image))
+        { return minustermprim; } | { return m; } )
+}
+
+Exp MultTerm() :
+{
+    boolean negate = false;
+    Token t;
+    Exp factor;
+    Exp multtermprim;
+    Exp expprim;
+}
+{
+    ( t = "!" {negate = !negate;} )*
+    factor = Factor()
+    expprim = ExpPrim(factor)
+    multtermprim = MultTermPrim(expprim)
+    {
+        if (negate) {
+            Not n = new Not(multtermprim);
+            return n;
+        } else { return multtermprim; }
+    }
+    { return multtermprim; }
+}
+
+Exp MultTermPrim(Exp f) :
+{
+    Token t;
+    Exp factor;
+    Exp multtermprim;
+    Exp expprim;
+}
+{
+    ( t = <TIMES> factor = Factor()
+        expprim = ExpPrim(factor)
+        multtermprim = MultTermPrim(new IntBinop(f, expprim, t.image))
+        { return multtermprim; } | { return f; } )
+}
+
+Exp Factor() :
+{
+    Token t;
+    Identifier i;
+    Exp e;
+    int sign = 1;
+    long number;
+}
+{
+    ( (<MINUS> {sign = -1;})? t = <NUM> {
+                number = Long.parseLong(t.image)*sign;
+                if (number > Integer.MAX_VALUE || number < Integer.MIN_VALUE) {
+                    throw new ParseException("int cannot be larger than 2^31");
+                }
+                IntegerLiteral il = new IntegerLiteral((int)number);
+                il.setPosition(t.beginLine, t.beginColumn);
+                return il; } |
+      t = <TRUE> { return new True(t.beginLine, t.beginColumn); } |
+      t = <FALSE> { return new False(t.beginLine, t.beginColumn); } |
+      i = id() {
+                IdentifierExp ie = new IdentifierExp(i.toString());
+                ie.setPosition(i.getLine(), i.getColumn());
+                return ie; } |
+      t = <THIS> { return new This(t.beginLine, t.beginColumn); } |
+      t = <NEW> (
+                <INT> "[" e = Exp() "]" {
+                    NewArray na = new NewArray(e);
+                    na.setPosition(t.beginLine, t.beginColumn);
+                    return na; } |
+                i = id() "(" ")" {
+                    NewObject no = new NewObject(i);
+                    no.setPosition(t.beginLine, t.beginColumn);
+                    return no; }
+                ) |
+/*      t = "!" e = Exp() {
+                Not n = new Not(e);
+                n.setPosition(t.beginLine, t.beginColumn);
+                return n; } |*/
+      <LPAR> e = Exp() <RPAR> { return e; } )
+}
+
+Identifier id():
+{
+    Token t;
+}
+{
+    t = <ID> {
+        Identifier i = new Identifier(t.image);
+        i.setPosition(t.beginLine, t.beginColumn);
+        return i; }
+}
+
+ExpList ExpList() :
+{
+    ExpList el = new ExpList();
+    Exp e;
+}
+{
+    <LPAR> 
+        ( e = Exp() 
+            {
+                el.addElement(e);
+                el.setPosition(e.getLine(), e.getColumn());
+            }
+            ( "," e = Exp()
+                { el.addElement(e); }
+            )*
+        )?
+    <RPAR>
+    { return el; }
+}

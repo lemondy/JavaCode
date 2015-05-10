@@ -1,0 +1,434 @@
+<program>
+ <class_list size=2>
+  <class name=Good1>
+   <variable_declaration_list size=0>
+   </variable_declaration_list>
+   <method_list size=1>
+    <method name=main type=int>
+     <parameters>
+      <parameter type=String[] name=args/>
+     </parameters>
+     <variable_declaration_list size=0>
+     </variable_declaration_list>
+     <statement_list size=1>
+      <print>
+       <call name=testing>
+        <caller>
+         <new_object type=Good1Sorter/>
+        </caller>
+        <parameters>
+        </parameters>
+       </call>
+      </print>
+     </statement_list>
+     <return>
+      <constant value=0/>
+     </return>
+    </method>
+   </method_list>
+  </class>
+  <class name=Good1Sorter>
+   <variable_declaration_list size=5>
+    <var_decl type=int name=refr/>
+    <var_decl type=int name=lb/>
+    <var_decl type=int name=hb/>
+    <var_decl type=int name=tmp/>
+    <var_decl type=int name=dump/>
+   </variable_declaration_list>
+   <method_list size=2>
+    <method name=testing type=boolean>
+     <parameters>
+     </parameters>
+     <variable_declaration_list size=2>
+      <var_decl type=int[] name=a/>
+      <var_decl type=int name=waste/>
+     </variable_declaration_list>
+     <statement_list size=11>
+      <assign name=a>
+       <new_array>
+        <size>
+         <constant value=5/>
+        </size>
+       </new_array>
+      </assign>
+      <array_assign name=a>
+       <index>
+        <constant value=0/>
+       </index>
+       <exp>
+        <constant value=7/>
+       </exp>
+      </array_assign>
+      <array_assign name=a>
+       <index>
+        <constant value=1/>
+       </index>
+       <exp>
+        <constant value=2/>
+       </exp>
+      </array_assign>
+      <array_assign name=a>
+       <index>
+        <constant value=2/>
+       </index>
+       <exp>
+        <constant value=1/>
+       </exp>
+      </array_assign>
+      <array_assign name=a>
+       <index>
+        <constant value=3/>
+       </index>
+       <exp>
+        <constant value=3/>
+       </exp>
+      </array_assign>
+      <array_assign name=a>
+       <index>
+        <constant value=4/>
+       </index>
+       <exp>
+        <constant value=10/>
+       </exp>
+      </array_assign>
+      <assign name=waste>
+       <constant value=0/>
+      </assign>
+      <print>
+       <identifier name=a/>
+      </print>
+      <assign name=waste>
+       <call name=quickSort>
+        <caller>
+         <this>
+        </caller>
+        <parameters>
+         <parameter>
+          <identifier name=a/>
+         </parameter>
+         <parameter>
+          <constant value=0/>
+         </parameter>
+         <parameter>
+          <constant value=4/>
+         </parameter>
+        </parameters>
+       </call>
+      </assign>
+      <assign name=waste>
+       <call name=quickSort>
+        <caller>
+         <this>
+        </caller>
+        <parameters>
+         <parameter>
+          <identifier name=a/>
+         </parameter>
+         <parameter>
+          <constant value=0/>
+         </parameter>
+         <parameter>
+          <binop operator=- >
+           <left>
+            <array_length>
+             <identifier name=a/>
+            </array_length>
+           </left>
+           <right>
+            <constant value=1/>
+           </right>
+          </binop>
+         </parameter>
+        </parameters>
+       </call>
+      </assign>
+      <print>
+       <identifier name=a/>
+      </print>
+     </statement_list>
+     <return>
+<true>
+     </return>
+    </method>
+    <method name=quickSort type=int>
+     <parameters>
+      <parameter type=int[] name=array/>
+      <parameter type=int name=start/>
+      <parameter type=int name=end/>
+     </parameters>
+     <variable_declaration_list size=1>
+      <var_decl type=int name=ret/>
+     </variable_declaration_list>
+     <statement_list size=2>
+      <assign name=ret>
+       <constant value=0/>
+      </assign>
+      <if>
+       <condition>
+        <binop operator=< >
+         <left>
+          <binop operator=- >
+           <left>
+            <identifier name=end/>
+           </left>
+           <right>
+            <identifier name=start/>
+           </right>
+          </binop>
+         </left>
+         <right>
+          <constant value=1/>
+         </right>
+        </binop>
+       </condition>
+       <then>
+        <statement_list size=1>
+         <assign name=ret>
+          <constant value=0/>
+         </assign>
+        </statement_list>
+       <then>
+       <else>
+        <statement_list size=9>
+         <assign name=refr>
+          <array_lookup>
+           <index>
+            <identifier name=array/>
+           </index>
+           <exp>
+            <identifier name=start/>
+           </exp>
+          </array_lookup>
+         </assign>
+         <assign name=lb>
+          <identifier name=start/>
+         </assign>
+         <assign name=hb>
+          <binop operator=+ >
+           <left>
+            <identifier name=end/>
+           </left>
+           <right>
+            <constant value=1/>
+           </right>
+          </binop>
+         </assign>
+         <while>
+          <condition>
+           <binop operator=< >
+            <left>
+             <binop operator=+ >
+              <left>
+               <identifier name=lb/>
+              </left>
+              <right>
+               <constant value=1/>
+              </right>
+             </binop>
+            </left>
+            <right>
+             <identifier name=hb/>
+            </right>
+           </binop>
+          </condition>
+          <do>
+           <statement_list size=1>
+            <if>
+             <condition>
+              <binop operator=< >
+               <left>
+                <binop operator=- >
+                 <left>
+                  <array_lookup>
+                   <index>
+                    <identifier name=array/>
+                   </index>
+                   <exp>
+                    <binop operator=+ >
+                     <left>
+                      <identifier name=lb/>
+                     </left>
+                     <right>
+                      <constant value=1/>
+                     </right>
+                    </binop>
+                   </exp>
+                  </array_lookup>
+                 </left>
+                 <right>
+                  <identifier name=refr/>
+                 </right>
+                </binop>
+               </left>
+               <right>
+                <constant value=0/>
+               </right>
+              </binop>
+             </condition>
+             <then>
+              <statement_list size=1>
+               <assign name=lb>
+                <binop operator=+ >
+                 <left>
+                  <identifier name=lb/>
+                 </left>
+                 <right>
+                  <constant value=1/>
+                 </right>
+                </binop>
+               </assign>
+              </statement_list>
+             <then>
+             <else>
+              <statement_list size=4>
+               <assign name=hb>
+                <binop operator=- >
+                 <left>
+                  <identifier name=hb/>
+                 </left>
+                 <right>
+                  <constant value=1/>
+                 </right>
+                </binop>
+               </assign>
+               <assign name=tmp>
+                <array_lookup>
+                 <index>
+                  <identifier name=array/>
+                 </index>
+                 <exp>
+                  <identifier name=hb/>
+                 </exp>
+                </array_lookup>
+               </assign>
+               <array_assign name=array>
+                <index>
+                 <identifier name=hb/>
+                </index>
+                <exp>
+                 <array_lookup>
+                  <index>
+                   <identifier name=array/>
+                  </index>
+                  <exp>
+                   <binop operator=+ >
+                    <left>
+                     <identifier name=lb/>
+                    </left>
+                    <right>
+                     <constant value=1/>
+                    </right>
+                   </binop>
+                  </exp>
+                 </array_lookup>
+                </exp>
+               </array_assign>
+               <array_assign name=array>
+                <index>
+                 <binop operator=+ >
+                  <left>
+                   <identifier name=lb/>
+                  </left>
+                  <right>
+                   <constant value=1/>
+                  </right>
+                 </binop>
+                </index>
+                <exp>
+                 <identifier name=tmp/>
+                </exp>
+               </array_assign>
+              </statement_list>
+             </else>
+            </if>
+           </statement_list>
+          <do>
+         </while>
+         <array_assign name=array>
+          <index>
+           <identifier name=start/>
+          </index>
+          <exp>
+           <array_lookup>
+            <index>
+             <identifier name=array/>
+            </index>
+            <exp>
+             <identifier name=lb/>
+            </exp>
+           </array_lookup>
+          </exp>
+         </array_assign>
+         <array_assign name=array>
+          <index>
+           <identifier name=lb/>
+          </index>
+          <exp>
+           <identifier name=refr/>
+          </exp>
+         </array_assign>
+         <assign name=dump>
+          <call name=quickSort>
+           <caller>
+            <this>
+           </caller>
+           <parameters>
+            <parameter>
+             <identifier name=array/>
+            </parameter>
+            <parameter>
+             <identifier name=start/>
+            </parameter>
+            <parameter>
+             <binop operator=- >
+              <left>
+               <identifier name=lb/>
+              </left>
+              <right>
+               <constant value=1/>
+              </right>
+             </binop>
+            </parameter>
+           </parameters>
+          </call>
+         </assign>
+         <assign name=dump>
+          <call name=quickSort>
+           <caller>
+            <this>
+           </caller>
+           <parameters>
+            <parameter>
+             <identifier name=array/>
+            </parameter>
+            <parameter>
+             <binop operator=+ >
+              <left>
+               <identifier name=lb/>
+              </left>
+              <right>
+               <constant value=1/>
+              </right>
+             </binop>
+            </parameter>
+            <parameter>
+             <identifier name=end/>
+            </parameter>
+           </parameters>
+          </call>
+         </assign>
+         <assign name=ret>
+          <constant value=0/>
+         </assign>
+        </statement_list>
+       </else>
+      </if>
+     </statement_list>
+     <return>
+      <identifier name=ret/>
+     </return>
+    </method>
+   </method_list>
+  </class>
+ </class_list>
+</program>

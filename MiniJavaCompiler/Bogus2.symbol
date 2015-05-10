@@ -1,0 +1,24 @@
+Main class: Bogus2
+
+		Class: Bogus2
+			Fields:
+				Method: int main
+					Parameters:
+						String[] args
+					Locals:
+
+
+		Class: Test
+			Fields:
+				Method: boolean testing
+					Parameters:
+					Locals:
+						int b
+				Method: int bool
+					Parameters:
+						int a
+					Locals:
+						boolean t
+						boolean b
+
+

@@ -1,0 +1,88 @@
+<program>
+ <class_list size=2>
+  <class name=Bogus2>
+   <variable_declaration_list size=0>
+   </variable_declaration_list>
+   <method_list size=1>
+    <method name=main type=int>
+     <parameters>
+      <parameter type=String[] name=args/>
+     </parameters>
+     <variable_declaration_list size=0>
+     </variable_declaration_list>
+     <statement_list size=1>
+      <print>
+       <call name=testing>
+        <caller>
+         <new_object type=Test/>
+        </caller>
+        <parameters>
+        </parameters>
+       </call>
+      </print>
+     </statement_list>
+     <return>
+      <constant value=0/>
+     </return>
+    </method>
+   </method_list>
+  </class>
+  <class name=Test>
+   <variable_declaration_list size=0>
+   </variable_declaration_list>
+   <method_list size=2>
+    <method name=testing type=boolean>
+     <parameters>
+     </parameters>
+     <variable_declaration_list size=1>
+      <var_decl type=int name=b/>
+     </variable_declaration_list>
+     <statement_list size=1>
+      <assign name=b>
+       <call name=bool>
+        <caller>
+         <this>
+        </caller>
+        <parameters>
+         <parameter>
+          <constant value=4/>
+         </parameter>
+        </parameters>
+       </call>
+      </assign>
+     </statement_list>
+     <return>
+<true>
+     </return>
+    </method>
+    <method name=bool type=int>
+     <parameters>
+      <parameter type=int name=a/>
+     </parameters>
+     <variable_declaration_list size=2>
+      <var_decl type=boolean name=t/>
+      <var_decl type=boolean name=b/>
+     </variable_declaration_list>
+     <statement_list size=2>
+      <assign name=t>
+<true>
+      </assign>
+      <assign name=b>
+       <binop operator=+ >
+        <left>
+         <identifier name=t/>
+        </left>
+        <right>
+         <identifier name=a/>
+        </right>
+       </binop>
+      </assign>
+     </statement_list>
+     <return>
+      <constant value=1/>
+     </return>
+    </method>
+   </method_list>
+  </class>
+ </class_list>
+</program>
